@@ -1,3 +1,5 @@
+visit project: https://bishalyadav854.github.io/calculator/
+
 # milo calculator
 
 A responsive, keyboard-friendly calculator built with plain HTML, CSS, and JavaScript. It includes a dark/light theme switch, a scientific keypad, DEG/RAD angle modes, and recent calculations. No build step or dependencies are required.
