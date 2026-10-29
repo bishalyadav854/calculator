@@ -1,11 +1,17 @@
 const expressionDisplay = document.querySelector("#expression");
 const resultDisplay = document.querySelector("#result");
 const historyList = document.querySelector("#history-list");
+const historyCount = document.querySelector("#history-count");
 const keypad = document.querySelector(".keypad");
+const scientificToggle = document.querySelector("#scientific-toggle");
+const scientificKeys = document.querySelector("#scientific-keys");
+const themeToggle = document.querySelector("#theme-toggle");
+const root = document.documentElement;
 
 let expression = "";
 let justCalculated = false;
 let history = [];
+let angleMode = "DEG";
 
 const operators = ["+", "-", "*", "/"];
 
@@ -22,7 +28,12 @@ function formatNumber(value) {
 }
 
 function displayExpression(value) {
-  return value.replaceAll("*", "×").replaceAll("/", "÷").replaceAll("-", "−");
+  return value
+    .replaceAll("*", "×")
+    .replaceAll("/", "÷")
+    .replaceAll("-", "−")
+    .replaceAll("sqrt", "√")
+    .replaceAll("pi", "π");
 }
 
 function calculate(source) {
@@ -75,11 +86,21 @@ function calculate(source) {
       position += 1;
       return -parseUnary();
     }
-    return parsePercentage();
+    return parsePower();
   }
 
-  function parsePercentage() {
-    let value = parseNumber();
+  function parsePower() {
+    let value = parsePostfix();
+    skipWhitespace();
+    if (source[position] === "^") {
+      position += 1;
+      value **= parseUnary();
+    }
+    return value;
+  }
+
+  function parsePostfix() {
+    let value = parsePrimary();
     skipWhitespace();
     while (source[position] === "%") {
       value /= 100;
@@ -87,6 +108,55 @@ function calculate(source) {
       skipWhitespace();
     }
     return value;
+  }
+
+  function parsePrimary() {
+    skipWhitespace();
+    if (source[position] === "(") {
+      position += 1;
+      const value = parseExpression();
+      skipWhitespace();
+      if (source[position] !== ")") {
+        throw new Error("Expected closing parenthesis");
+      }
+      position += 1;
+      return value;
+    }
+
+    if (/[a-z]/i.test(source[position] || "")) {
+      const start = position;
+      while (/[a-z]/i.test(source[position] || "")) position += 1;
+      const name = source.slice(start, position).toLowerCase();
+      if (name === "pi") return Math.PI;
+      if (name === "e") return Math.E;
+      if (!["sin", "cos", "tan", "sqrt", "ln", "log", "abs"].includes(name)) {
+        throw new Error("Unknown function");
+      }
+      if (source[position] !== "(") {
+        throw new Error("Expected function argument");
+      }
+      position += 1;
+      const argument = parseExpression();
+      skipWhitespace();
+      if (source[position] !== ")") {
+        throw new Error("Expected closing parenthesis");
+      }
+      position += 1;
+
+      const angle = angleMode === "DEG" ? (argument * Math.PI) / 180 : argument;
+      const functions = {
+        sin: () => Math.sin(angle),
+        cos: () => Math.cos(angle),
+        tan: () => Math.tan(angle),
+        sqrt: () => Math.sqrt(argument),
+        ln: () => Math.log(argument),
+        log: () => Math.log10(argument),
+        abs: () => Math.abs(argument),
+      };
+      return functions[name]();
+    }
+
+    return parseNumber();
   }
 
   function parseNumber() {
@@ -130,12 +200,15 @@ function calculate(source) {
 }
 
 function currentPreview() {
-  if (!expression || operators.includes(expression.at(-1)) || expression.at(-1) === ".") {
+  if (!expression || operators.includes(expression.at(-1)) || expression.at(-1) === "." || expression.at(-1) === "^") {
     return null;
   }
   try {
     return { value: calculate(expression) };
   } catch (error) {
+    if (["Expected a number", "Expected closing parenthesis", "Expected function argument"].includes(error.message)) {
+      return null;
+    }
     return { error };
   }
 }
@@ -146,7 +219,9 @@ function render() {
   if (preview === null) {
     resultDisplay.textContent = "—";
   } else if (preview.error) {
-    resultDisplay.textContent = preview.error.message === "Cannot divide by zero" ? "Cannot divide by zero" : "Error";
+    resultDisplay.textContent = preview.error.message === "Cannot divide by zero"
+      ? "Cannot divide by zero"
+      : "Error";
   } else {
     resultDisplay.textContent = formatNumber(preview.value);
   }
@@ -158,7 +233,7 @@ function appendDigit(digit) {
     justCalculated = false;
   }
 
-  if (expression.at(-1) === "%") {
+  if (expression.endsWith("%") || expression.endsWith(")") || expression.endsWith("pi")) {
     expression += "*";
   }
   expression += digit;
@@ -189,7 +264,7 @@ function appendDecimal() {
     expression = "";
     justCalculated = false;
   }
-  if (expression.at(-1) === "%") expression += "*";
+  if (expression.endsWith("%") || expression.endsWith(")") || expression.endsWith("pi")) expression += "*";
   const currentNumber = expression.split(/[+\-*/]/).at(-1);
   if (!currentNumber.includes(".")) {
     expression += currentNumber ? "." : "0.";
@@ -237,10 +312,11 @@ function backspace() {
 }
 
 function renderHistory() {
+  historyCount.textContent = String(history.length).padStart(2, "0");
   if (!history.length) {
     historyList.innerHTML = `
       <div class="history-empty">
-        <span class="empty-icon" aria-hidden="true">↗</span>
+        <span class="empty-icon" aria-hidden="true">∑</span>
         <p>Your calculations will<br />show up here.</p>
       </div>`;
     return;
@@ -270,6 +346,11 @@ function renderHistory() {
 }
 
 function commitCalculation() {
+  const openParentheses = [...expression].filter((character) => character === "(").length;
+  const closeParentheses = [...expression].filter((character) => character === ")").length;
+  if (openParentheses > closeParentheses) {
+    expression += ")".repeat(openParentheses - closeParentheses);
+  }
   const preview = currentPreview();
   if (preview === null) return;
   if (preview.error) {
@@ -305,6 +386,10 @@ function handleAction(action) {
     applyPercent();
   } else if (action === "equals") {
     commitCalculation();
+  } else if (action === "square" && expression) {
+    expression = `(${expression})^2`;
+    justCalculated = false;
+    render();
   }
 }
 
@@ -313,20 +398,67 @@ keypad.addEventListener("click", (event) => {
   if (!button) return;
 
   if (button.dataset.value !== undefined) {
-    if (operators.includes(button.dataset.value)) appendOperator(button.dataset.value);
-    else appendDigit(button.dataset.value);
+    const value = button.dataset.value;
+    if (operators.includes(value)) appendOperator(value);
+    else if (/^\d$/.test(value)) appendDigit(value);
+    else {
+      if (justCalculated) justCalculated = false;
+      if (value === "(" && /(?:\d|pi|\)|%)$/.test(expression)) expression += "*";
+      if (value === "pi" && /(?:\d|pi|\)|%)$/.test(expression)) expression += "*";
+      expression += value;
+      render();
+    }
+  } else if (button.dataset.function) {
+    if (justCalculated) {
+      expression = `${button.dataset.function}(${expression})`;
+      justCalculated = false;
+    } else {
+      if (/(?:\d|pi|\)|%)$/.test(expression)) expression += "*";
+      expression += `${button.dataset.function}(`;
+    }
+    render();
   } else {
     handleAction(button.dataset.action);
   }
 });
 
 document.querySelector("#backspace").addEventListener("click", backspace);
+scientificToggle.addEventListener("click", () => {
+  const isExpanded = scientificToggle.getAttribute("aria-expanded") === "true";
+  scientificToggle.setAttribute("aria-expanded", String(!isExpanded));
+  scientificKeys.hidden = isExpanded;
+});
+
+document.querySelectorAll("[data-angle]").forEach((button) => {
+  button.addEventListener("click", () => {
+    angleMode = button.dataset.angle;
+    document.querySelectorAll("[data-angle]").forEach((option) => {
+      const isActive = option === button;
+      option.classList.toggle("is-active", isActive);
+      option.setAttribute("aria-pressed", String(isActive));
+    });
+    render();
+  });
+});
+
+themeToggle.addEventListener("click", () => {
+  const isLight = root.dataset.theme !== "light";
+  root.dataset.theme = isLight ? "light" : "dark";
+  themeToggle.setAttribute("aria-label", `Switch to ${isLight ? "dark" : "light"} theme`);
+  document.querySelector('meta[name="theme-color"]').content = isLight ? "#f1f3ed" : "#101511";
+});
+
 document.querySelector("#clear-history").addEventListener("click", () => {
   history = [];
   renderHistory();
 });
 
 document.addEventListener("keydown", (event) => {
+  if (
+    event.target instanceof HTMLElement
+    && event.target.closest("button")
+    && ["Enter", " "].includes(event.key)
+  ) return;
   if (/^[0-9]$/.test(event.key)) {
     appendDigit(event.key);
   } else if (operators.includes(event.key)) {
@@ -335,6 +467,10 @@ document.addEventListener("keydown", (event) => {
     appendDecimal();
   } else if (event.key === "%") {
     applyPercent();
+  } else if (event.key === "(" || event.key === ")") {
+    if (justCalculated) justCalculated = false;
+    expression += event.key;
+    render();
   } else if (event.key === "Enter" || event.key === "=") {
     event.preventDefault();
     commitCalculation();

@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f4f5f0" />
+    <meta name="theme-color" content="#101511" />
     <meta
       name="description"
       content="A thoughtfully designed calculator for everyday math."
     />
-    <title>milo — a little calculator</title>
+    <title>milo — a calmer way to count</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -21,17 +21,29 @@
     <main class="page">
       <header class="topbar">
         <a class="brand" href="#" aria-label="Milo calculator home">
-          <span class="brand-mark" aria-hidden="true">m</span>
+          <span class="brand-mark" aria-hidden="true">m.</span>
           <span>milo</span>
         </a>
-        <span class="topbar-note"><span class="status-dot"></span> Your everyday calculator</span>
+        <div class="topbar-actions">
+          <span class="topbar-note"><span class="status-dot"></span> All systems lovely</span>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light theme" title="Switch theme">
+            <svg class="sun-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.4A8.5 8.5 0 0 1 8.6 3.8 8.5 8.5 0 1 0 20.2 15.4Z" /></svg>
+          </button>
+        </div>
       </header>
+
+      <section class="intro">
+        <p class="intro-kicker"><span class="intro-line"></span> YOUR SPACE TO THINK</p>
+        <h1>A calmer way<br class="mobile-break" /> to count<span>.</span></h1>
+        <p class="intro-copy">A little clarity for whatever you’re working out.</p>
+      </section>
 
       <section class="workspace" aria-label="Calculator">
         <div class="calculator">
           <div class="display" aria-live="polite" aria-atomic="true">
             <div class="display-label">
-              <span>LET’S WORK IT OUT</span>
+              <span><span class="display-live"></span> QUICK CALCULATOR</span>
               <button class="icon-button" id="backspace" type="button" aria-label="Delete last character" title="Delete last character">
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M9 5 3 12l6 7h12V5H9Z" />
@@ -44,6 +56,37 @@
               <span class="result-equals">=</span>
               <output class="result" id="result">0</output>
             </div>
+            <div class="display-meta">
+              <span>PREVIEW RESULT</span>
+              <span class="display-meta-mark" aria-hidden="true">↗</span>
+            </div>
+          </div>
+
+          <div class="calculator-toolbar">
+            <button class="mode-toggle" id="scientific-toggle" type="button" aria-expanded="false" aria-controls="scientific-keys">
+              <span class="mode-icon" aria-hidden="true">ƒx</span>
+              <span>Scientific</span>
+              <span class="mode-chevron" aria-hidden="true">⌄</span>
+            </button>
+            <div class="angle-toggle" aria-label="Angle unit">
+              <button type="button" data-angle="DEG" class="angle-option is-active" aria-pressed="true">DEG</button>
+              <button type="button" data-angle="RAD" class="angle-option" aria-pressed="false">RAD</button>
+            </div>
+          </div>
+
+          <div class="scientific-keys" id="scientific-keys" hidden aria-label="Scientific calculator keys">
+            <button class="key key-scientific" type="button" data-function="sin">sin</button>
+            <button class="key key-scientific" type="button" data-function="cos">cos</button>
+            <button class="key key-scientific" type="button" data-function="tan">tan</button>
+            <button class="key key-scientific" type="button" data-function="sqrt">√</button>
+            <button class="key key-scientific" type="button" data-function="ln">ln</button>
+            <button class="key key-scientific" type="button" data-function="log">log</button>
+            <button class="key key-scientific" type="button" data-value="(">(</button>
+            <button class="key key-scientific" type="button" data-value=")">)</button>
+            <button class="key key-scientific" type="button" data-value="pi">π</button>
+            <button class="key key-scientific" type="button" data-value="^">xʸ</button>
+            <button class="key key-scientific" type="button" data-action="square">x²</button>
+            <button class="key key-scientific" type="button" data-function="abs">|x|</button>
           </div>
 
           <div class="keypad" aria-label="Calculator keys">
@@ -69,35 +112,36 @@
 
             <button class="key key-zero" type="button" data-value="0">0</button>
             <button class="key" type="button" data-action="decimal">.</button>
-            <button class="key key-equals" type="button" data-action="equals" aria-label="Equals">=</button>
+            <button class="key key-equals" type="button" data-action="equals" aria-label="Calculate"><span>Calculate</span><span aria-hidden="true">↗</span></button>
           </div>
-          <p class="keyboard-hint"><kbd>Enter</kbd> to calculate <span>·</span> <kbd>⌫</kbd> to delete</p>
+          <p class="keyboard-hint"><span class="hint-tip">TIP</span> <kbd>ENTER</kbd> calculate <i></i> <kbd>⌫</kbd> delete</p>
         </div>
 
         <aside class="history" aria-label="Calculation history">
           <div class="history-heading">
             <div>
-              <p class="eyebrow">YOUR SCRATCHPAD</p>
-              <h2>Recent</h2>
+              <p class="eyebrow">YOUR WORKSPACE</p>
+              <h2>History <span class="history-count" id="history-count">00</span></h2>
             </div>
-            <button class="clear-history" id="clear-history" type="button">Clear</button>
+            <button class="clear-history" id="clear-history" type="button" aria-label="Clear calculation history">Clear all <span aria-hidden="true">↗</span></button>
           </div>
+          <p class="history-caption">Pick up where you left off.</p>
           <div class="history-list" id="history-list">
             <div class="history-empty">
-              <span class="empty-icon" aria-hidden="true">↗</span>
-              <p>Your calculations will<br />show up here.</p>
+              <span class="empty-icon" aria-hidden="true">∑</span>
+              <p>Your calculations<br />will live here.</p>
             </div>
           </div>
           <div class="history-footer">
             <span class="footer-sparkle" aria-hidden="true">✳</span>
-            <span>Made for the little things</span>
+            <span>Numbers, neatly in order.</span>
           </div>
         </aside>
       </section>
 
       <footer class="page-footer">
-        <span>Simple math, a little more lovely.</span>
-        <span class="footer-shortcut">Works with your keyboard, too <span aria-hidden="true">↗</span></span>
+        <span><span class="footer-brand">m.</span> A little more lovely.</span>
+        <span class="footer-shortcut"><kbd>0–9</kbd> <kbd>+</kbd> <kbd>−</kbd> <kbd>×</kbd> <kbd>÷</kbd><span> works with your keyboard</span></span>
       </footer>
     </main>
     <script src="script.js"></script>
