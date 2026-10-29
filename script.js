@@ -6,12 +6,15 @@ const keypad = document.querySelector(".keypad");
 const scientificToggle = document.querySelector("#scientific-toggle");
 const scientificKeys = document.querySelector("#scientific-keys");
 const themeToggle = document.querySelector("#theme-toggle");
+const copyrightYear = document.querySelector("#copyright-year");
 const root = document.documentElement;
 
 let expression = "";
 let justCalculated = false;
 let history = [];
 let angleMode = "DEG";
+
+copyrightYear.textContent = String(new Date().getFullYear());
 
 const operators = ["+", "-", "*", "/"];
 

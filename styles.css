@@ -790,6 +790,12 @@ kbd {
   margin-left: 6px;
 }
 
+.copyright {
+  color: var(--muted);
+  font-size: 9px;
+  text-align: right;
+}
+
 @media (min-width: 900px) {
   .calculator {
     padding-right: 42px;
@@ -904,8 +910,16 @@ kbd {
   }
 
   .page-footer {
-    min-height: 55px;
+    min-height: 66px;
+    flex-wrap: wrap;
+    gap: 7px 12px;
     font-size: 9px;
+  }
+
+  .copyright {
+    width: 100%;
+    padding-bottom: 10px;
+    text-align: center;
   }
 
   .footer-shortcut > span {
